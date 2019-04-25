@@ -1,3 +1,9 @@
+# Vim session
+Session.vim
+
+# Test files
+*.test
+
 # Prerequisites
 *.d
 
@@ -17,6 +23,7 @@
 *.pch
 
 # Libraries
+lib
 *.lib
 *.a
 *.la
