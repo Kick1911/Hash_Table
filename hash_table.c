@@ -12,20 +12,24 @@ static unsigned long mod(long a, long b){
 	return r;
 }
 
-char h_alloc_table(h_table_t* ht){
+h_table_t* h_create_table(){
+	h_table_t* ht = malloc(sizeof(h_table_t));
+	if(!ht) return NULL;
 	ht->size = START_SIZE;
 	ht->increm = ht->size;
 	ht->num_of_elements = 0;
 
 	ht->hash_table = (h_node_t*) malloc(sizeof(h_node_t) * ht->size);
-	if(!ht->hash_table) return 1;
+	if(!ht->hash_table) return NULL;
 	int i = 0;while( i < ht->size )
 		ht->hash_table[i++] = (h_node_t){NULL, NULL};
-	return 0;
+	return ht;
 }
 
 char h_free_table(h_table_t* ht){
 	free(ht->hash_table);
+	free(ht);
+	return 0;
 }
 
 static u_int hash(char* k, u_int limit){
@@ -89,15 +93,14 @@ __inline__ u_int h_size(h_table_t* ht){
 int main(void){
 	u_int value = 19, unique = 1911;
 	char* keys[] = {"kick", "ness", "S1", "S2"};
-	h_table_t ht;
-	h_alloc_table(&ht);
-	h_insert(&ht, *keys, &value);
-	h_insert(&ht, keys[1], &value);
-	h_insert(&ht, keys[2], &value);
-	h_insert(&ht, keys[3], &unique);
-	display(&ht);
-	printf("Probing %s: %d\n",keys[3], *((u_int*)h_lookup(&ht, keys[3])));
-	h_free_table(&ht);
+	h_table_t* ht = h_create_table();
+	h_insert(ht, *keys, &value);
+	h_insert(ht, keys[1], &value);
+	h_insert(ht, keys[2], &value);
+	h_insert(ht, keys[3], &unique);
+	display(ht);
+	printf("Probing %s: %d\n",keys[3], *((u_int*)h_lookup(ht, keys[3])));
+	h_free_table(ht);
 	return 0;
 }
 #endif

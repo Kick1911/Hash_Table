@@ -17,13 +17,12 @@ typedef struct h_table{
 	h_node_t* hash_table;
 }h_table_t;
 
-char h_alloc_table(h_table_t*);
+h_table_t* h_create_table();
 char h_free_table(h_table_t*);
 
 char h_insert(h_table_t*, char*, void*);
 void* h_lookup(h_table_t*, char*);
 char check(h_table_t*, char*);
-static u_int hash(char*, u_int);
 __inline__ u_int h_size(h_table_t*);
 
 #endif
