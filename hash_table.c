@@ -91,15 +91,18 @@ __inline__ u_int h_size(h_table_t* ht){
 
 #ifdef STATIC
 int main(void){
-	u_int value = 19, unique = 1911;
-	char* keys[] = {"kick", "ness", "S1", "S2"};
+	char** ptr;
+	char str[] = "Kickness";
+	char* keys[] = {"Kick", "vev", "btbtrt", "ntsrb", "btsnt", NULL};
 	h_table_t* ht = h_create_table();
-	h_insert(ht, *keys, &value);
-	h_insert(ht, keys[1], &value);
-	h_insert(ht, keys[2], &value);
-	h_insert(ht, keys[3], &unique);
+	ptr = keys;
+	h_insert(ht, str, str);
+	while(*ptr){
+		h_insert(ht, *ptr, *ptr);
+        printf("Probing %s: %s\n", *ptr, h_lookup(ht,  *ptr));
+		ptr++;
+	}
 	display(ht);
-	printf("Probing %s: %d\n",keys[3], *((u_int*)h_lookup(ht, keys[3])));
 	h_free_table(ht);
 	return 0;
 }

@@ -14,7 +14,6 @@ void insert_strings(void* ht){
 	char *str[] = {"Kick", "vev", "btbtrt", "ntsrb", "btsnt", NULL};
 	char** ptr = str;
 	while(*ptr){
-		printf("%s\n", *ptr);
 		h_insert(ht, *ptr, *ptr);
 		T_ASSERT_STRING((char*)h_lookup(ht, *ptr), *ptr);
 		ptr++;
@@ -38,16 +37,22 @@ void test_resize(){
 
 void insert_one(void* ht){
 	char str[] = "Kickness";
-	h_insert(ht, str, (char*)5);
-	T_ASSERT_NUM((char*)h_lookup(ht, str), 5);
+	h_insert(ht, str, str);
+	T_ASSERT_STRING((char*)h_lookup(ht, str), str);
 }
 
 int main(void){
 	h_table_t* ht = h_create_table();
 
+	N_TEST(Lookup no exist,
+		T_ASSERT(h_lookup(ht, "Does not exists"))
+	);
+
 	TEST(Insert one string, insert_one(ht));
+	display(ht);
 
 	TEST(Insert String into hash, insert_strings(ht));
+	display(ht);
 	TEST(Resizing, test_resize());
 	
 
