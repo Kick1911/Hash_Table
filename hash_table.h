@@ -20,8 +20,9 @@ typedef struct h_table{
 h_table_t* h_create_table();
 char h_free_table(h_table_t*);
 
-char h_insert(h_table_t*, char*, void*);
-void* h_lookup(h_table_t*, char*);
+char h_insert(h_table_t*, const char*, void*);
+void* h_lookup(h_table_t*, const char*);
+void h_free_key(h_table_t*, char*);
 char check(h_table_t*, char*);
 __inline__ u_int h_size(h_table_t*);
 
