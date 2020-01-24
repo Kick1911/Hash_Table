@@ -2,6 +2,7 @@
 #include <hash_table.h>
 #include <string.h>
 #include <stdio.h>
+#include <malloc.h>
 
 /* void stress_size(void* ht){
 	size_t s = h_size(ht) * 2;
@@ -16,45 +17,30 @@ void insert_strings(void* ht){
 	while(*ptr){
 		h_insert(ht, *ptr, *ptr);
 		T_ASSERT_STRING((char*)h_lookup(ht, *ptr), *ptr);
+		h_free_key(ht, *ptr);
 		ptr++;
 	}
 }
 
-void test_resize(){
-	char str[] = "Kick";
-	h_table_t* ht = h_create_table();
-	unsigned int size = h_size(ht);
-	h_insert(ht, str, (char*)1);
-	h_insert(ht, str, (char*)2);
-	h_insert(ht, str, (char*)3);
-	h_insert(ht, str, (char*)4);
-	h_insert(ht, str, (char*)5);
-
-	/* I am not sure why it's size*6 and not size*5 */
-	T_ASSERT_NUM(h_size(ht), size * 6);
-	h_free_table(ht);
-}
-
 void insert_one(void* ht){
+	int a = 19;
 	char str[] = "Kickness";
-	h_insert(ht, str, str);
-	T_ASSERT_STRING((char*)h_lookup(ht, str), str);
+	h_insert(ht, str, &a);
+	T_ASSERT_NUM(*((int*)h_lookup(ht, str)), a);
+    display(ht);
+    h_free_key(ht, str);
 }
 
 int main(void){
 	h_table_t* ht = h_create_table();
 
-	N_TEST(Lookup no exist,
-		T_ASSERT(h_lookup(ht, "Does not exists"))
+	TEST(Lookup no exist,
+		T_ASSERT(!h_lookup(ht, "Does not exists"))
 	);
 
 	TEST(Insert one string, insert_one(ht));
-	display(ht);
 
 	TEST(Insert String into hash, insert_strings(ht));
-	display(ht);
-	TEST(Resizing, test_resize());
-	
 
 	/* TEST(Insert more than table size, stress_size(&ht)); */
 	
