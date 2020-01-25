@@ -1,4 +1,3 @@
-#include <dlinked_list.h>
 #ifndef HASH_H
 #define HASH_H
 
@@ -15,7 +14,7 @@ typedef struct {
 	_HT_U_INT increm;
 	_HT_U_INT num_of_elements;
 	h_node_t* hash_table;
-	dl_list_t* keys;
+	void* keys; /* dl_link_t */
 }h_table_t;
 
 h_table_t* h_create_table();
