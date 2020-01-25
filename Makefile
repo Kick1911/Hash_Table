@@ -12,9 +12,12 @@ test: library hash_test.c
 mod_test: mod_test.c library
 	gcc -ansi $(DEBUG) -o mod.test mod_test.c -I. -lhash
 
-library: hash_table.h hash_table.c
+dlinked_list.o: dlinked_list.c 
+	gcc -ansi $(DEBUG) -fPIC -c -o dlinked_list.o dlinked_list.c -I.
+
+library: hash_table.h hash_table.c dlinked_list.o
 	gcc -ansi $(DEBUG) -fPIC -c -o hash_table.o hash_table.c -I.
-	gcc -ansi -shared -o $(LIB)/libhash.so.1 hash_table.o
+	gcc -ansi -shared -o $(LIB)/libhash.so.1 hash_table.o dlinked_list.o
 	rm -f hash_table.o
 
 install: library

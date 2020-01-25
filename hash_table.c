@@ -1,6 +1,7 @@
 #include <hash_table.h>
 #include <malloc.h>
 #include <string.h>
+#include <dlinked_list.h>
 
 static unsigned long mod(long a, long b){ 
 	long d = a/b;
@@ -18,6 +19,7 @@ h_table_t* h_create_table(){
 	ht->size = START_SIZE;
 	ht->increm = ht->size;
 	ht->num_of_elements = 0;
+	ht->keys = dl_create();
 
 	ht->hash_table = (h_node_t*) calloc(sizeof(h_node_t), ht->size);
 	if(!ht->hash_table) return NULL;
@@ -25,6 +27,10 @@ h_table_t* h_create_table(){
 }
 
 char h_free_table(h_table_t* ht){
+	dl_node_t* key;
+	while( (key = dl_pop(ht->keys)) )
+		free(key);
+	dl_free(ht->keys);
 	free(ht->hash_table);
 	free(ht);
 	return 0;
@@ -49,7 +55,7 @@ static char resize(h_table_t* ht, size_t more){
 	return 0;
 }
 
-static h_node_t* get_entry(h_table_t* ht, const char* k){
+static _HT_U_INT get_hash(h_table_t* ht, const char* k){
 	int offset = 0;
 	_HT_U_INT hk = hash(k, ht->increm);
 	while( ht->hash_table[hk].key &&
@@ -57,7 +63,11 @@ static h_node_t* get_entry(h_table_t* ht, const char* k){
 		hk = hash(k, ht->increm) + offset;
 		offset += ht->increm;
 	}
-	return ht->hash_table + hk;
+	return hk;
+}
+
+static h_node_t* get_entry(h_table_t* ht, const char* k){
+	return ht->hash_table + get_hash(ht, k);
 }
 
 char h_insert(h_table_t* ht, const char* k, void* v){
@@ -73,11 +83,21 @@ char h_insert(h_table_t* ht, const char* k, void* v){
 	if(!key){
 		key = malloc(sizeof(char) * strlen(k) + 1);
         strcpy(key, k);
+		dl_push(ht->keys, key);
 	}
 	ht->hash_table[hk].key = key;
 	ht->hash_table[hk].value = v;
 	ht->num_of_elements++;
 	return 0;
+}
+
+void* h_delete(h_table_t* ht, const char* k){
+	_HT_U_INT hk = get_hash(ht, k);
+	void* d = ht->hash_table[hk].value;
+	if(ht->hash_table[hk].key)
+		free(ht->hash_table[hk].key);
+	ht->hash_table[hk] = (h_node_t){NULL, NULL};
+	return d;
 }
 
 void h_free_key(h_table_t* ht, char* k){
@@ -89,7 +109,7 @@ void h_free_key(h_table_t* ht, char* k){
 void display(h_table_t* ht){
 	size_t i = 0;while( i < ht->size ){
 		void* temp = ht->hash_table[i++].value;
-		printf("%ld ", (temp)?*((int*)temp):0);
+		printf("%d ", (temp)?*((int*)temp):0);
 	}
 	printf("\n");
 }
