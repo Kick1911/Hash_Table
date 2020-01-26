@@ -1,6 +1,5 @@
 #include <unitest.h>
 #include <hash_table.h>
-#include <dlinked_list.h>
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>
@@ -42,23 +41,6 @@ int main(void){
 	TEST(Insert String into hash, insert_strings(ht));
 
 	/* TEST(Insert more than table size, stress_size(&ht)); */
-
-	TEST(Linked List Test,
-		char str1[] = "Kick";
-		char str2[] = "ness";
-		char str3[] = "mid";
-		void* n;
-		void* l = dl_create();
-		T_ASSERT(l);
-		T_ASSERT(dl_push(l, str1));
-		T_ASSERT( (n = dl_push(l, str3)) );
-		T_ASSERT(dl_push(l, str2));
-		T_ASSERT_STRING((char*)dl_unlink(l, n), str3);
-		T_ASSERT_STRING((char*)dl_pop(l), str2);
-		T_ASSERT_STRING((char*)dl_pop(l), str1);
-		T_ASSERT(!dl_pop(l));
-		dl_free(l);
-	);
 
 	h_free_table(ht);
 	T_CONCLUDE();

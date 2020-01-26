@@ -5,7 +5,7 @@
 #define _HT_U_INT unsigned int
 
 typedef struct h_node{
-	char* key;
+	char key[100];
 	void* value;
 }h_node_t;
 
@@ -14,7 +14,6 @@ typedef struct {
 	_HT_U_INT increm;
 	_HT_U_INT num_of_elements;
 	h_node_t* hash_table;
-	void* keys; /* dl_link_t */
 }h_table_t;
 
 h_table_t* h_create_table();
