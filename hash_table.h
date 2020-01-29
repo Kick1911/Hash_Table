@@ -13,13 +13,17 @@ typedef struct {
 	_HT_U_INT size;
 	_HT_U_INT increm;
 	_HT_U_INT num_of_elements;
-	h_node_t* hash_table;
-	void* keys; /* dl_link_t */
+	h_node_t** hash_table;
+	void* elements; /* dl_link_t */
 }h_table_t;
+
+typedef struct{
+	void* node; /* dl_node_t */
+} h_iter_t;
 
 h_table_t* h_create_table();
 char h_free_table(h_table_t*);
-
+h_iter_t* h_iter(h_table_t*);
 char h_insert(h_table_t*, const char*, void*);
 void* h_lookup(h_table_t*, const char*);
 void h_free_key(h_table_t*, char*);

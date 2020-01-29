@@ -43,6 +43,10 @@ void* dl_pop(dl_list_t* l){
     return d;
 }
 
+dl_node_t* dl_peek(dl_list_t* l){
+    return l->head;
+}
+
 void* dl_pop_head(dl_list_t* l){
     void* d;
     dl_node_t* n = l->head;

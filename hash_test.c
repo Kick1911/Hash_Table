@@ -27,7 +27,6 @@ void insert_one(void* ht){
 	char str[] = "Kickness";
 	h_insert(ht, str, &a);
 	T_ASSERT_NUM(*((int*)h_lookup(ht, str)), a);
-    display(ht);
 }
 
 int main(void){

@@ -14,6 +14,7 @@ typedef struct{
 } dl_list_t;
 
 dl_list_t* dl_create();
+dl_node_t* dl_peek(dl_list_t* l);
 dl_node_t* dl_push(dl_list_t* l, void* data);
 void* dl_pop(dl_list_t* l);
 void* dl_unlink(dl_list_t* l, dl_node_t* n);
