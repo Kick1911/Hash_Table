@@ -59,7 +59,7 @@ int main(void){
 		dl_free(l);
 	);
 
-	h_free_table(ht);
+	h_free_table(ht, NULL);
 	T_CONCLUDE();
 	return 0;
 }

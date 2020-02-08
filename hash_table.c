@@ -26,10 +26,13 @@ h_table_t* h_create_table(){
 	return ht;
 }
 
-char h_free_table(h_table_t* ht){
+char h_free_table(h_table_t* ht, void (*free_cb)(void*)){
+	void (*free_fn)(void*);
 	h_node_t* n;
+	free_fn = (free_cb) ? free_cb : free;
 	while( (n = dl_pop(ht->elements)) ){
 		free(n->key);
+		free_fn(n->value);
 		free(n);
 	}
 	dl_free(ht->elements);
@@ -121,18 +124,23 @@ h_iter_t* h_iter(h_table_t* ht){
 	return hi;
 }
 
-int h_next(h_iter_t* hi, char** k, void** v){
-	h_node_t* hn = NULL;
-
+int h_next_node(h_iter_t* hi, h_node_t** hn){
 	dl_node_t* n = hi->node;
 	if(!n) return 1;
 
-	hn = n->data;
+	*hn = n->data;
+	hi->node = n->next;
+	return 0;
+}
+
+int h_next(h_iter_t* hi, char** k, void** v){
+	h_node_t* hn = NULL;
+	if(!h_next_node(hi, &hn))
+		return 1;
 	if(!hn) return 1;
 
 	*k = hn->key;
 	*v = hn->value;
-	hi->node = n->next;
 	return 0;
 }
 
@@ -170,7 +178,7 @@ int main(void){
 		ptr++;
 	}
 	display(ht);
-	h_free_table(ht);
+	h_free_table(ht, NULL);
 	return 0;
 }
 #endif
