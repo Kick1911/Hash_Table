@@ -15,14 +15,15 @@ typedef struct {
 	_HT_U_INT num_of_elements;
 	h_node_t** hash_table;
 	void* elements; /* dl_link_t */
+	void (*free)(void*);
 }h_table_t;
 
 typedef struct{
 	void* node; /* dl_node_t */
 } h_iter_t;
 
-h_table_t* h_create_table();
-char h_free_table(h_table_t*, void (*free_cb)(void*));
+h_table_t* h_create_table(void (*free_cb)(void*));
+char h_free_table(h_table_t*);
 h_iter_t* h_iter(h_table_t*);
 int h_next(h_iter_t*, char**, void**);
 int h_next_node(h_iter_t*, h_node_t**);

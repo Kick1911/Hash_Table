@@ -13,26 +13,26 @@ static unsigned long mod(long a, long b){
 	return r;
 }
 
-h_table_t* h_create_table(){
+h_table_t* h_create_table(void (*free_cb)(void*)){
 	h_table_t* ht = malloc(sizeof(h_table_t));
 	if(!ht) return NULL;
 	ht->size = START_SIZE;
 	ht->increm = ht->size;
 	ht->num_of_elements = 0;
 	ht->elements = dl_create();
+	ht->free = free_cb;
 
 	ht->hash_table = (h_node_t**) calloc(sizeof(h_node_t*), ht->size);
 	if(!ht->hash_table) return NULL;
 	return ht;
 }
 
-char h_free_table(h_table_t* ht, void (*free_cb)(void*)){
-	void (*free_fn)(void*);
+char h_free_table(h_table_t* ht){
 	h_node_t* n;
-	free_fn = (free_cb) ? free_cb : free;
 	while( (n = dl_pop(ht->elements)) ){
 		free(n->key);
-		free_fn(n->value);
+		if(ht->free)
+			ht->free(n->value);
 		free(n);
 	}
 	dl_free(ht->elements);
@@ -93,9 +93,11 @@ char h_insert(h_table_t* ht, const char* k, void* v){
         strcpy(key, k);
         ht->hash_table[hk] = n;
 		dl_push(ht->elements, n);
+        ht->hash_table[hk]->key = key;
         ht->num_of_elements++;
-	}
-    ht->hash_table[hk]->key = key;
+	}else
+		if(ht->free) ht->free(ht->hash_table[hk]->value);
+	
     ht->hash_table[hk]->value = v;
 	return 0;
 }
@@ -129,14 +131,16 @@ int h_next_node(h_iter_t* hi, h_node_t** hn){
 	if(!n) return 1;
 
 	*hn = n->data;
-	hi->node = n->next;
+	hi->node = n->prev;
 	return 0;
 }
 
 int h_next(h_iter_t* hi, char** k, void** v){
 	h_node_t* hn = NULL;
-	if(!h_next_node(hi, &hn))
+	if(h_next_node(hi, &hn)){
+		free(hi);
 		return 1;
+	}
 	if(!hn) return 1;
 
 	*k = hn->key;
