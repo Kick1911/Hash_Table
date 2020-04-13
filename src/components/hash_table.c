@@ -80,7 +80,7 @@ static h_node_t* get_entry(h_table_t* ht, const char* k){
 char h_insert(h_table_t* ht, const char* k, void* v){
 	char* key;
 	_HT_U_INT hk = hash(k, ht->increm);
-	int p = ht->increm, offset = 0;
+	int p = ht->increm;
 	while( ht->hash_table[hk] && strcmp(ht->hash_table[hk]->key, k) ){
 		if(p > ht->size)
 			resize(ht, ht->increm);
@@ -148,7 +148,7 @@ int h_next(h_iter_t* hi, char** k, void** v){
 	return 0;
 }
 
-static void display(h_table_t* ht){
+/* static void display(h_table_t* ht){
 	size_t i = 0;while( i < ht->size ){
 		if(ht->hash_table[i]){
 			void* temp = ht->hash_table[i]->value;
@@ -157,7 +157,7 @@ static void display(h_table_t* ht){
 		i++;
 	}
 	printf("\n");
-}
+} */
 
 void* h_lookup(h_table_t* ht, const char* k){
 	h_node_t* n = get_entry(ht, k);
@@ -167,22 +167,3 @@ void* h_lookup(h_table_t* ht, const char* k){
 __inline__ _HT_U_INT h_size(h_table_t* ht){
 	return ht->size;
 }
-
-#ifdef STATIC
-int main(void){
-	char** ptr;
-	char str[] = "Kickness";
-	char* keys[] = {"Kick", "vev", "btbtrt", "ntsrb", "btsnt", NULL};
-	h_table_t* ht = h_create_table();
-	ptr = keys;
-	h_insert(ht, str, str);
-	while(*ptr){
-		h_insert(ht, *ptr, *ptr);
-        printf("Probing %s: %s\n", *ptr, h_lookup(ht,  *ptr));
-		ptr++;
-	}
-	display(ht);
-	h_free_table(ht, NULL);
-	return 0;
-}
-#endif

@@ -1,35 +1,37 @@
+include project.mk
 include Makefile.in
+include config.mk
 
-INCLUDE=include
-LIB=lib
+all: ${APP_NAME}
 
-hash_table.out: hash_table.h hash_table.c
-	gcc -ansi $(DEBUG) -D STATIC -o hash_table.out hash_table.c -I.
+${APP_NAME}: ${SRC_PATH}/${APP_NAME}.c ${COMP_O} ${UTILS_O}
+	${CC} $^ -o $@ ${CFLAGS}
+%.o: %.c
+	${CC} -c $< -o $@ ${CFLAGS} -D STATIC
 
-test: library hash_test.c
-	gcc -ansi $(DEBUG) -o hash_table.test hash_test.c $(LIB)/libhash.so.1 -I.
+static_library: lib${APP_NAME}.a
 
-mod_test: mod_test.c library
-	gcc -ansi $(DEBUG) -o mod.test mod_test.c -I. -lhash
+lib${APP_NAME}.a: ${COMP_O} ${UTILS_O}
+	ar -cvq $@ $^
 
-dlinked_list.o: dlinked_list.c 
-	gcc -ansi $(DEBUG) -fPIC -c -o dlinked_list.o dlinked_list.c -I.
 
-library: hash_table.h hash_table.c dlinked_list.o
-	gcc -ansi $(DEBUG) -fPIC -c -o hash_table.o hash_table.c -I.
-	gcc -ansi -shared -o $(LIB)/libhash.so.1 hash_table.o dlinked_list.o
-	rm -f hash_table.o
+set_pic:
+	${eval CFLAGS += -fPIC}
 
-install: library
-	if ! [ -d $(PREFIX)/$(INCLUDE) ]; then mkdir -p $(PREFIX)/$(INCLUDE); fi
-	cp hash_table.h $(PREFIX)/$(INCLUDE)
-	if ! [ -d $(PREFIX)/$(LIB) ]; then mkdir -p $(PREFIX)/$(LIB); fi
-	cp $(LIB)/libhash.so.1 $(PREFIX)/$(LIB)
-	ln -sf $(PREFIX)/$(LIB)/libhash.so.1 $(PREFIX)/$(LIB)/libhash.so
+shared_library: set_pic lib${APP_NAME}.so
 
-uninstall:
-	rm -f $(PREFIX)/$(LIB)/hash_table.h
-	rm -f $(PREFIX)/$(LIB)/libhash.so.1 $(PREFIX)/$(LIB)/libhash.so
+lib${APP_NAME}.so: ${COMP_O} ${UTILS_O}
+	${CC} -shared -Wl,-soname,$@ -o $@.0.0.1 $^ ${LDFLAGS}
+	ln -sf $@.0.0.1 $@
+
+install:
+	@cp ${APP_NAME} ${CONFIG_INSTALL_PATH}/bin 2> /dev/null || :
+	@cp ${INCLUDE_PATH}/* ${CONFIG_INSTALL_PATH}/include 2> /dev/null || :
+	@cp lib${APP_NAME}.* ${CONFIG_INSTALL_PATH}/lib 2> /dev/null || :
 
 clean:
-	rm -f *.out *.test $(LIB)/*.so.*
+	${RM} ${APP_NAME} lib${APP_NAME}.*
+
+.INTERMEDIATE: ${COMP_O} ${UTILS_O}
+.PHONY: install clean all set_pic
+
