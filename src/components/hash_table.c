@@ -165,5 +165,5 @@ void* h_lookup(h_table_t* ht, const char* k){
 }
 
 __inline__ _HT_U_INT h_size(h_table_t* ht){
-	return ht->size;
+	return ht->num_of_elements;
 }

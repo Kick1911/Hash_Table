@@ -5,13 +5,6 @@
 #include <stdio.h>
 #include <malloc.h>
 
-/* void stress_size(void* ht){
-	size_t s = h_size(ht) * 2;
-	while(s--){
-		h_insert(ht, str, (char*)5);
-	}
-} */
-
 void insert_strings(){
     h_table_t* ht = h_create_table(NULL);
 	char *str[] = {"Kick", "vev", "btbtrt", "ntsrb", "btsnt", NULL};
