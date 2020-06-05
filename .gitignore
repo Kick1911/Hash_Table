@@ -1,3 +1,6 @@
+include
+*.a.*
+
 # Vim session
 Session.vim
 

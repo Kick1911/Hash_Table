@@ -1,0 +1,7 @@
+{
+    "name": "hash_table",
+    "version": "0.0.1",
+    "install_path": "/opt",
+    "dependencies": "libdlinked_list.a.0.0.1",
+    "cflags": ""
+}
