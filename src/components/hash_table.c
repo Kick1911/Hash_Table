@@ -122,7 +122,7 @@ void h_free_key(h_table_t* ht, char* k){
 
 h_iter_t* h_iter(h_table_t* ht){
 	h_iter_t* hi = (h_iter_t*)malloc(sizeof(h_iter_t));
-	hi->node = dl_peek(ht->elements);
+	hi->node = dl_head(ht->elements);
 	return hi;
 }
 
@@ -131,7 +131,7 @@ int h_next_node(h_iter_t* hi, h_node_t** hn){
 	if(!n) return 1;
 
 	*hn = n->data;
-	hi->node = n->prev;
+	hi->node = n->next;
 	return 0;
 }
 

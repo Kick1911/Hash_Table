@@ -57,11 +57,11 @@ int main(void){
 		h_insert(ht, "b", test2);
 		iter = h_iter(ht);
 		T_ASSERT_NUM(h_next(iter, &k, &v), 0);
-		T_ASSERT_STRING(k, "b");
-		T_ASSERT_STRING((char*)v, test2);
-		T_ASSERT_NUM(h_next(iter, &k, &v), 0);
 		T_ASSERT_STRING(k, "a");
 		T_ASSERT_STRING((char*)v, test1);
+		T_ASSERT_NUM(h_next(iter, &k, &v), 0);
+		T_ASSERT_STRING(k, "b");
+		T_ASSERT_STRING((char*)v, test2);
 		T_ASSERT_NUM(h_next(iter, &k, &v), 1); /* Auto free iterator */
 		h_free_table(ht);
 	);
