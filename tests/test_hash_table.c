@@ -20,7 +20,7 @@ void insert_strings(){
 void insert_one(){
 	int a = 19;
 	char str[] = "Kickness";
-    h_table_t* ht = h_create_table(NULL);
+	h_table_t* ht = h_create_table(NULL);
 	h_insert(ht, str, &a);
 	T_ASSERT_NUM(*((int*)h_lookup(ht, str)), a);
 	h_free_table(ht);
@@ -33,6 +33,40 @@ int main(void){
         h_free_table(ht);
 	);
 
+	TEST(Set empty key,
+		h_table_t* ht = h_create_table(NULL);
+		T_ASSERT_NUM(h_insert(ht, "", NULL), 1);
+		T_ASSERT_NUM(H_SIZE(ht), 0);
+        h_free_table(ht);
+	);
+
+	TEST(Delete bad keys,
+		h_table_t* ht = h_create_table(NULL);
+		T_ASSERT(!h_delete(ht, ""));
+		T_ASSERT(!h_delete(ht, "unknown"));
+		T_ASSERT_NUM(H_SIZE(ht), 0);
+		h_free_table(ht);
+	);
+
+	TEST(Delete keys,
+		int num = 19;
+		int* ptr = &num;
+		char str[] = "This is a string.";
+		h_table_t* ht = h_create_table(NULL);
+
+		T_ASSERT_NUM(h_insert(ht, "key1", ptr), 0);
+		T_ASSERT_NUM(h_insert(ht, "key2", str), 0);
+		T_ASSERT_NUM(H_SIZE(ht), 2);
+
+		T_ASSERT_NUM(h_lookup(ht, "key1"), ptr);
+		T_ASSERT_NUM(h_lookup(ht, "key2"), str);
+
+		T_ASSERT_NUM(h_delete(ht, "key1"), ptr);
+		T_ASSERT_NUM(h_delete(ht, "key2"), str);
+		T_ASSERT_NUM(H_SIZE(ht), 0);
+        h_free_table(ht);
+	);
+
 	TEST(Insert one string, insert_one());
 
 	TEST(Insert String into hash, insert_strings());
@@ -41,8 +75,9 @@ int main(void){
 		char test1[] = "Test string";
 		char test2[] = "Another test string";
 		h_table_t* ht = h_create_table(NULL);
-		h_insert(ht, "kick", test1);
-		h_insert(ht, "kick", test2);
+
+		T_ASSERT_NUM(h_insert(ht, "kick", test1), 0);
+		T_ASSERT_NUM(h_insert(ht, "kick", test2), 0);
 		h_free_table(ht);
 	);
 

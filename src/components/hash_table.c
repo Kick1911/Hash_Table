@@ -1,33 +1,39 @@
 #include <hash_table.h>
 #include <malloc.h>
 #include <string.h>
+#include <utils/hash.h>
 #include <dlinked_list.h>
 
-static unsigned long mod(long a, long b){ 
-	long d = a/b;
-	long r = a - b * d;
-	if( d < 1 ){
-		a = b + r;
-		return a - b * (a / b);
-	}
-	return r;
+#define START_SIZE (37)
+
+static char resize(h_table_t* ht, size_t more){
+	size_t old_size = ht->capacity;
+	size_t new_size = old_size + more;
+	ht->hash_table = realloc(ht->hash_table, sizeof(*ht->hash_table) * new_size);
+
+	if(!ht->hash_table) return 2;
+
+	while(old_size < new_size)
+		ht->hash_table[old_size++] = NULL;
+	ht->capacity += more;
+	return 0;
 }
 
 h_table_t* h_create_table(void (*free_cb)(void*)){
-	h_table_t* ht = malloc(sizeof(h_table_t));
+	h_table_t* ht = malloc(sizeof(*ht));
 	if(!ht) return NULL;
-	ht->size = START_SIZE;
-	ht->increm = ht->size;
-	ht->num_of_elements = 0;
+	ht->capacity = START_SIZE;
+	ht->increm = ht->capacity;
+	ht->size = 0;
 	ht->elements = dl_create();
 	ht->free = free_cb;
 
-	ht->hash_table = (h_node_t**) calloc(sizeof(h_node_t*), ht->size);
+	ht->hash_table = calloc(sizeof(*ht->hash_table), ht->capacity);
 	if(!ht->hash_table) return NULL;
 	return ht;
 }
 
-char h_free_table(h_table_t* ht){
+void h_free_table(h_table_t* ht){
 	h_node_t* n;
 	while( (n = dl_pop(ht->elements)) ){
 		free(n->key);
@@ -38,95 +44,74 @@ char h_free_table(h_table_t* ht){
 	dl_free(ht->elements);
 	free(ht->hash_table);
 	free(ht);
-	return 0;
-}
-
-static _HT_U_INT hash(const char* k, _HT_U_INT limit){
-	_HT_U_INT h = 0;
-	size_t len = strlen(k) - 1;
-	while(len--)
-		h += k[len] - k[len+1];
-	return mod(h, limit);
-}
-
-static char resize(h_table_t* ht, size_t more){
-	size_t old_size = ht->size;
-	size_t new_size = old_size + more;
-	ht->hash_table = realloc(ht->hash_table, sizeof(h_node_t) * new_size);
-	if(!ht->hash_table) return 2;
-	while(old_size < new_size)
-		ht->hash_table[old_size++] = NULL;
-	ht->size += more;
-	return 0;
-}
-
-static _HT_U_INT get_hash(h_table_t* ht, const char* k){
-	int offset = 0;
-	_HT_U_INT hk = hash(k, ht->increm);
-	while( ht->hash_table[hk] &&
-			strcmp(ht->hash_table[hk]->key, k) ){
-		hk = hash(k, ht->increm) + offset;
-		offset += ht->increm;
-	}
-	return hk;
-}
-
-static h_node_t* get_entry(h_table_t* ht, const char* k){
-	_HT_U_INT h = get_hash(ht, k);
-	if(h > ht->size) return NULL;
-	return ht->hash_table[h];
 }
 
 char h_insert(h_table_t* ht, const char* k, void* v){
 	char* key;
-	_HT_U_INT hk = hash(k, ht->increm);
-	int p = ht->increm;
-	while( ht->hash_table[hk] && strcmp(ht->hash_table[hk]->key, k) ){
-		if(p > ht->size)
+	h_node_t* n;
+	int64_t hk, p;
+
+	hk = hash(k, ht->increm);
+	if(hk < 0) return 1;
+
+	p = ht->increm;
+	while( ht->hash_table[hk] && strcmp(HN_KEY(ht->hash_table[hk]), k) ){
+		if(p > ht->capacity)
 			resize(ht, ht->increm);
-		hk = hash(ht->hash_table[hk]->key, ht->increm) + (p - ht->increm);
+		hk = hash(HN_KEY(ht->hash_table[hk]), ht->increm) + (p - ht->increm);
 		p += ht->increm;
 	}
+
 	if(!ht->hash_table[hk]){
-		h_node_t* n = malloc(sizeof(h_node_t));
+		n = malloc(sizeof(*n));
+		if(!n) goto fail;
 		key = malloc(sizeof(char) * strlen(k) + 1);
-        strcpy(key, k);
-        ht->hash_table[hk] = n;
-		dl_push(ht->elements, n);
-        ht->hash_table[hk]->key = key;
-        ht->num_of_elements++;
+		if(!key) goto free_n_and_fail;
+		strcpy(key, k);
+		n->key = key;
+		ht->hash_table[hk] = dl_push(ht->elements, n);
+		ht->size++;
 	}else
-		if(ht->free) ht->free(ht->hash_table[hk]->value);
-	
-    ht->hash_table[hk]->value = v;
+		if(ht->free) ht->free(HN_VALUE(ht->hash_table[hk]));
+
+    HN_VALUE(ht->hash_table[hk]) = v;
+
 	return 0;
+	free_n_and_fail:
+	free(n);
+	fail:
+	return 1;
 }
 
 void* h_delete(h_table_t* ht, const char* k){
 	void* d = NULL;
-	_HT_U_INT hk = get_hash(ht, k);
-	if(ht->hash_table[hk]){
-        d = ht->hash_table[hk]->value;
-		free(ht->hash_table[hk]->key);
-		free(ht->hash_table[hk]);
-	}
-	ht->hash_table[hk] = NULL;
-	return d;
-}
+	int64_t hk;
 
-void h_free_key(h_table_t* ht, char* k){
-	h_node_t* n = get_entry(ht, k);
-	free(n->key);
-	n->key = NULL;
+	hk = get_hash(ht, k);
+	if(hk < 0 || !ht->hash_table[hk]) return NULL;
+
+	d = HN_VALUE(ht->hash_table[hk]);
+	free(HN_KEY(ht->hash_table[hk]));
+	/* Delete from dlinked_list and free h_node_t */
+	free(dl_unlink(ht->elements, ht->hash_table[hk]));
+
+	ht->hash_table[hk] = NULL;
+	/* Move duplicate keys one increment back */
+	while( (hk += ht->increm) < ht->capacity && ht->hash_table[hk] )
+		ht->hash_table[hk - ht->increm] = ht->hash_table[hk];
+
+	ht->size--;
+
+	return d;
 }
 
 h_iter_t* h_iter(h_table_t* ht){
 	h_iter_t* hi = (h_iter_t*)malloc(sizeof(h_iter_t));
-	hi->node = dl_head(ht->elements);
+	hi->node = DL_HEAD(ht->elements);
 	return hi;
 }
 
-int h_next_node(h_iter_t* hi, h_node_t** hn){
+static int h_next_node(h_iter_t* hi, h_node_t** hn){
 	dl_node_t* n = hi->node;
 	if(!n) return 1;
 
@@ -149,7 +134,7 @@ int h_next(h_iter_t* hi, char** k, void** v){
 }
 
 /* static void display(h_table_t* ht){
-	size_t i = 0;while( i < ht->size ){
+	size_t i = 0;while( i < ht->capacity ){
 		if(ht->hash_table[i]){
 			void* temp = ht->hash_table[i]->value;
 			printf("%d ", (temp)?*((int*)temp):0);
@@ -164,6 +149,3 @@ void* h_lookup(h_table_t* ht, const char* k){
 	return (n)? n->value: NULL;
 }
 
-__inline__ _HT_U_INT h_size(h_table_t* ht){
-	return ht->num_of_elements;
-}
