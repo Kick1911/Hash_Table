@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>
+#include <errno.h>
 
 void insert_strings(){
     h_table_t* ht = h_create_table(NULL);
@@ -30,6 +31,7 @@ int main(void){
 	TEST(Lookup no exist,
 		h_table_t* ht = h_create_table(NULL);
 		T_ASSERT(!h_lookup(ht, "Does not exists"))
+        T_ASSERT_NUM(errno, ENOENT);
         h_free_table(ht);
 	);
 
@@ -43,7 +45,9 @@ int main(void){
 	TEST(Delete bad keys,
 		h_table_t* ht = h_create_table(NULL);
 		T_ASSERT(!h_delete(ht, ""));
+        T_ASSERT_NUM(errno, ENOENT);
 		T_ASSERT(!h_delete(ht, "unknown"));
+        T_ASSERT_NUM(errno, ENOENT);
 		T_ASSERT_NUM(H_SIZE(ht), 0);
 		h_free_table(ht);
 	);

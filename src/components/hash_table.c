@@ -3,6 +3,7 @@
 #include <string.h>
 #include <utils/hash.h>
 #include <dlinked_list.h>
+#include <errno.h>
 
 #define START_SIZE (37)
 
@@ -77,8 +78,10 @@ char h_insert(h_table_t* ht, const char* k, void* v){
     HN_VALUE(ht->hash_table[hk]) = v;
 
 	return 0;
+
 	free_n_and_fail:
 	free(n);
+
 	fail:
 	return 1;
 }
@@ -88,14 +91,17 @@ void* h_delete(h_table_t* ht, const char* k){
 	int64_t hk;
 
 	hk = get_hash(ht, k);
-	if(hk < 0 || !ht->hash_table[hk]) return NULL;
+	if(hk < 0 || !ht->hash_table[hk]){
+		errno = ENOENT;
+		return NULL;
+	}
 
 	d = HN_VALUE(ht->hash_table[hk]);
 	free(HN_KEY(ht->hash_table[hk]));
 	/* Delete from dlinked_list and free h_node_t */
 	free(dl_unlink(ht->elements, ht->hash_table[hk]));
-
 	ht->hash_table[hk] = NULL;
+
 	/* Move duplicate keys one increment back */
 	while( (hk += ht->increm) < ht->capacity && ht->hash_table[hk] )
 		ht->hash_table[hk - ht->increm] = ht->hash_table[hk];
@@ -106,7 +112,8 @@ void* h_delete(h_table_t* ht, const char* k){
 }
 
 h_iter_t* h_iter(h_table_t* ht){
-	h_iter_t* hi = (h_iter_t*)malloc(sizeof(h_iter_t));
+	h_iter_t* hi = malloc(sizeof(h_iter_t));
+	if(!hi) return NULL;
 	hi->node = DL_HEAD(ht->elements);
 	return hi;
 }
@@ -146,6 +153,10 @@ int h_next(h_iter_t* hi, char** k, void** v){
 
 void* h_lookup(h_table_t* ht, const char* k){
 	h_node_t* n = get_entry(ht, k);
-	return (n)? n->value: NULL;
+	if(!n){
+		errno = ENOENT;
+		return NULL;
+	}
+	return n->value;
 }
 

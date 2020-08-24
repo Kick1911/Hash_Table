@@ -22,8 +22,6 @@ typedef struct{
 } h_iter_t;
 
 #define H_SIZE(ht) ((h_table_t*)(ht))->size
-#define HN_VALUE(dl_n) ((h_node_t*)DN_DATA(dl_n))->value
-#define HN_KEY(dl_n) ((h_node_t*)DN_DATA(dl_n))->key
 
 h_table_t* h_create_table(void (*free_cb)(void*));
 void h_free_table(h_table_t*);

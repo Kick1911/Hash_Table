@@ -7,6 +7,9 @@
 #include <dlinked_list.h>
 #include <stdio.h>
 
+#define HN_VALUE(dl_n) ((h_node_t*)DN_DATA(dl_n))->value
+#define HN_KEY(dl_n) ((h_node_t*)DN_DATA(dl_n))->key
+
 static uint64_t mod(int64_t a, int64_t b){ 
 	int64_t d = a/b;
 	int64_t r = a - b * d;
