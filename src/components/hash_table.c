@@ -7,7 +7,8 @@
 
 #define START_SIZE (37)
 
-static char resize(h_table_t* ht, size_t more){
+static char
+resize(h_table_t* ht, size_t more){
     size_t old_size = ht->capacity;
     size_t new_size = old_size + more;
     ht->hash_table = realloc(ht->hash_table, sizeof(*ht->hash_table) * new_size);
@@ -20,7 +21,8 @@ static char resize(h_table_t* ht, size_t more){
     return 0;
 }
 
-h_table_t* h_create_table(void (*free_cb)(void*)){
+h_table_t*
+h_create_table(void (*free_cb)(void*)){
     h_table_t* ht = malloc(sizeof(*ht));
     if(!ht) return NULL;
     ht->capacity = START_SIZE;
@@ -34,7 +36,8 @@ h_table_t* h_create_table(void (*free_cb)(void*)){
     return ht;
 }
 
-void h_free_table(h_table_t* ht){
+void
+h_free_table(h_table_t* ht){
     h_node_t* n;
     while( (n = dl_pop(ht->elements)) ){
         free(n->key);
@@ -47,7 +50,8 @@ void h_free_table(h_table_t* ht){
     free(ht);
 }
 
-char h_insert(h_table_t* ht, const char* k, void* v){
+char
+h_insert(h_table_t* ht, const char* k, void* v){
     char* key;
     h_node_t* n;
     int64_t hk, p;
@@ -86,7 +90,8 @@ char h_insert(h_table_t* ht, const char* k, void* v){
     return 1;
 }
 
-void* h_delete(h_table_t* ht, const char* k){
+void*
+h_delete(h_table_t* ht, const char* k){
     void* d = NULL;
     int64_t hk;
 
@@ -111,14 +116,16 @@ void* h_delete(h_table_t* ht, const char* k){
     return d;
 }
 
-h_iter_t* h_iter(h_table_t* ht){
+h_iter_t*
+h_iter(h_table_t* ht){
     h_iter_t* hi = malloc(sizeof(h_iter_t));
     if(!hi) return NULL;
     hi->node = DL_HEAD(ht->elements);
     return hi;
 }
 
-static int h_next_node(h_iter_t* hi, h_node_t** hn){
+static int
+h_next_node(h_iter_t* hi, h_node_t** hn){
     dl_node_t* n = hi->node;
     if(!n) return 1;
 
@@ -127,7 +134,8 @@ static int h_next_node(h_iter_t* hi, h_node_t** hn){
     return 0;
 }
 
-int h_next(h_iter_t* hi, char** k, void** v){
+int
+h_next(h_iter_t* hi, char** k, void** v){
     h_node_t* hn = NULL;
     if(h_next_node(hi, &hn)){
         free(hi);
@@ -151,7 +159,8 @@ int h_next(h_iter_t* hi, char** k, void** v){
     printf("\n");
 } */
 
-void* h_lookup(h_table_t* ht, const char* k){
+void*
+h_lookup(h_table_t* ht, const char* k){
     h_node_t* n = get_entry(ht, k);
     if(!n){
         errno = ENOENT;
