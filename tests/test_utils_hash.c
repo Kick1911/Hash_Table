@@ -1,5 +1,6 @@
 #include <unitest.h>
 #include <stdio.h>
+#include <malloc.h>
 #include <hash_table.h>
 #include <utils/hash.h>
 
