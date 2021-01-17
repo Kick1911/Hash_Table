@@ -21,19 +21,19 @@ resize(h_table_t* ht, size_t more){
     return 0;
 }
 
-h_table_t*
-h_create_table(void (*free_cb)(void*)){
-    h_table_t* ht = malloc(sizeof(*ht));
-    if(!ht) return NULL;
+int
+h_init_table(h_table_t* ht){
+    if(!ht) return 1;
+
     ht->capacity = START_SIZE;
     ht->increm = ht->capacity;
     ht->size = 0;
     ht->elements = dl_create();
-    ht->free = free_cb;
+    ht->free = NULL;
 
     ht->hash_table = calloc(sizeof(*ht->hash_table), ht->capacity);
-    if(!ht->hash_table) return NULL;
-    return ht;
+    if(!ht->hash_table) return 2;
+    return 0;
 }
 
 void
@@ -47,7 +47,6 @@ h_free_table(h_table_t* ht){
     }
     dl_free(ht->elements);
     free(ht->hash_table);
-    free(ht);
 }
 
 char

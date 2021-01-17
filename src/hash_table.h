@@ -23,8 +23,8 @@ typedef struct{
 
 #define H_SIZE(ht) ((h_table_t*)(ht))->size
 
-h_table_t* h_create_table(h_table_t*);
-void h_free_table(h_table_t*);
+int h_table_init(h_table_t*);
+void h_table_free(h_table_t*);
 h_iter_t* h_iter(h_table_t*);
 int h_next(h_iter_t*, char**, void**);
 char h_insert(h_table_t*, const char*, void*);
