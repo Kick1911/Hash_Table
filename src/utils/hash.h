@@ -7,10 +7,11 @@
 #include <dlinked_list.h>
 #include <stdio.h>
 
-#define HN_VALUE(dl_n) ((h_node_t*)DN_DATA(dl_n))->value
-#define HN_KEY(dl_n) ((h_node_t*)DN_DATA(dl_n))->key
+#define HN_VALUE(dl_n) ((h_node_t*)((dl_node_t*)dl_n)->data)->value
+#define HN_KEY(dl_n) ((h_node_t*)((dl_node_t*)dl_n)->data)->key
 
-static uint64_t mod(int64_t a, int64_t b){ 
+static uint64_t
+mod(int64_t a, int64_t b){
     int64_t d = a/b;
     int64_t r = a - b * d;
     if( d < 1 ){
@@ -42,7 +43,7 @@ static int64_t get_hash(h_table_t* ht, const char* k){
 static h_node_t* get_entry(h_table_t* ht, const char* k){
     int64_t hk = get_hash(ht, k);
     if(hk < 0 || hk > ht->capacity) return NULL;
-    return (ht->hash_table[hk])? DN_DATA(ht->hash_table[hk]) : NULL;
+    return (ht->hash_table[hk])? ((dl_node_t*)ht->hash_table[hk])->data : NULL;
 }
 
 #endif

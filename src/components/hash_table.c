@@ -7,6 +7,21 @@
 
 #define START_SIZE (37)
 
+/*
+static void
+display(h_table_t* ht){
+    size_t i = 0;while( i < ht->capacity ){
+        if(ht->hash_table[i]){
+            dl_node_t* dn = ht->hash_table[i];
+            h_node_t* hn = dn->data;
+            printf("%d ", (hn->value)?*((int*)hn->value):0);
+        }
+        i++;
+    }
+    printf("\n");
+}
+*/
+
 static char
 resize(h_table_t* ht, size_t more){
     size_t old_size = ht->capacity;
@@ -22,13 +37,14 @@ resize(h_table_t* ht, size_t more){
 }
 
 int
-h_init_table(h_table_t* ht){
+h_table_init(h_table_t* ht){
     if(!ht) return 1;
 
     ht->capacity = START_SIZE;
     ht->increm = ht->capacity;
     ht->size = 0;
-    ht->elements = dl_create();
+    ht->elements = malloc(sizeof(dl_list_t));
+    dl_init(ht->elements);
     ht->free = NULL;
 
     ht->hash_table = calloc(sizeof(*ht->hash_table), ht->capacity);
@@ -37,7 +53,7 @@ h_init_table(h_table_t* ht){
 }
 
 void
-h_free_table(h_table_t* ht){
+h_table_free(h_table_t* ht){
     h_node_t* n;
     while( (n = dl_pop(ht->elements)) ){
         free(n->key);
@@ -46,6 +62,7 @@ h_free_table(h_table_t* ht){
         free(n);
     }
     dl_free(ht->elements);
+    free(ht->elements);
     free(ht->hash_table);
 }
 
@@ -119,7 +136,7 @@ h_iter_t*
 h_iter(h_table_t* ht){
     h_iter_t* hi = malloc(sizeof(h_iter_t));
     if(!hi) return NULL;
-    hi->node = DL_HEAD(ht->elements);
+    hi->node = ((dl_list_t*)ht->elements)->head;
     return hi;
 }
 
@@ -146,17 +163,6 @@ h_next(h_iter_t* hi, char** k, void** v){
     *v = hn->value;
     return 0;
 }
-
-/* static void display(h_table_t* ht){
-    size_t i = 0;while( i < ht->capacity ){
-        if(ht->hash_table[i]){
-            void* temp = ht->hash_table[i]->value;
-            printf("%d ", (temp)?*((int*)temp):0);
-        }
-        i++;
-    }
-    printf("\n");
-} */
 
 void*
 h_lookup(h_table_t* ht, const char* k){

@@ -1,8 +1,8 @@
 #include <unitest.h>
 #include <stdio.h>
 #include <malloc.h>
-#include <hash_table.h>
 #include <utils/hash.h>
+#include <hash_table.h>
 
 int main(void){
     h_table_t ht;

@@ -1,16 +1,17 @@
 #include <unitest.h>
-#include <hash_table.h>
-#include <dlinked_list.h>
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <errno.h>
+#include <dlinked_list.h>
+#include <hash_table.h>
 
 void insert_strings(){
     h_table_t ht;
-    h_table_init(&ht);
     char *str[] = {"Kick", "vev", "btbtrt", "ntsrb", "btsnt", NULL};
     char** ptr = str;
+
+    h_table_init(&ht);
     while(*ptr){
         h_insert(&ht, *ptr, *ptr);
         T_ASSERT_STRING((char*)h_lookup(&ht, *ptr), *ptr);
@@ -24,7 +25,7 @@ void insert_one(){
     char str[] = {'a', 0};
     h_table_t* ht = malloc(sizeof(h_table_t));
     h_table_init(ht);
-    h_insert(ht, str, &a);
+    T_ASSERT_NUM(h_insert(ht, str, &a), 0);
     T_ASSERT_NUM(*((int*)h_lookup(ht, str)), a);
     h_table_free(ht);
     free(ht);
@@ -43,7 +44,7 @@ int main(void){
         h_table_t ht;
         h_table_init(&ht);
         T_ASSERT_NUM(h_insert(&ht, "", NULL), 1);
-        T_ASSERT_NUM(H_SIZE(&ht), 0);
+        T_ASSERT_NUM(ht.size, 0);
         h_table_free(&ht);
     );
 
@@ -58,7 +59,7 @@ int main(void){
         T_ASSERT_NUM(errno, ENOENT);
         T_ASSERT(!h_delete(&ht, "unknown"));
         T_ASSERT_NUM(errno, ENOENT);
-        T_ASSERT_NUM(H_SIZE(&ht), 0);
+        T_ASSERT_NUM(ht.size, 0);
         h_table_free(&ht);
     );
 
@@ -72,14 +73,14 @@ int main(void){
 
         T_ASSERT_NUM(h_insert(&ht, "key1", ptr), 0);
         T_ASSERT_NUM(h_insert(&ht, "key2", str), 0);
-        T_ASSERT_NUM(H_SIZE(&ht), 2);
+        T_ASSERT_NUM(ht.size, 2);
 
         T_ASSERT_NUM(h_lookup(&ht, "key1"), ptr);
         T_ASSERT_NUM(h_lookup(&ht, "key2"), str);
 
         T_ASSERT_NUM(h_delete(&ht, "key1"), ptr);
         T_ASSERT_NUM(h_delete(&ht, "key2"), str);
-        T_ASSERT_NUM(H_SIZE(&ht), 0);
+        T_ASSERT_NUM(ht.size, 0);
         h_table_free(&ht);
     );
 
@@ -120,16 +121,19 @@ int main(void){
         char str2[] = "ness";
         char str3[] = "mid";
         void* n;
-        void* l = dl_create();
-        T_ASSERT(l);
-        T_ASSERT(dl_push(l, str1));
-        T_ASSERT( (n = dl_push(l, str3)) );
-        T_ASSERT(dl_push(l, str2));
-        T_ASSERT_STRING((char*)dl_unlink(l, n), str3);
-        T_ASSERT_STRING((char*)dl_pop(l), str2);
-        T_ASSERT_STRING((char*)dl_pop(l), str1);
-        T_ASSERT(!dl_pop(l));
-        dl_free(l);
+        dl_list_t l;
+
+        dl_init(&l);
+
+        T_ASSERT(&l);
+        T_ASSERT(dl_push(&l, str1));
+        T_ASSERT( (n = dl_push(&l, str3)) );
+        T_ASSERT(dl_push(&l, str2));
+        T_ASSERT_STRING((char*)dl_unlink(&l, n), str3);
+        T_ASSERT_STRING((char*)dl_pop(&l), str2);
+        T_ASSERT_STRING((char*)dl_pop(&l), str1);
+        T_ASSERT(!dl_pop(&l));
+        dl_free(&l);
     );
 
     T_CONCLUDE();

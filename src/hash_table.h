@@ -21,8 +21,6 @@ typedef struct{
     void* node; /* dl_node_t */
 } h_iter_t;
 
-#define H_SIZE(ht) ((h_table_t*)(ht))->size
-
 int h_table_init(h_table_t*);
 void h_table_free(h_table_t*);
 h_iter_t* h_iter(h_table_t*);

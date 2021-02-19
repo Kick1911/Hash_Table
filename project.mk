@@ -1,9 +1,10 @@
 APP_NAME = hash_table
-VERSION = 0.0.1
-DEPENDENCIES = libdlinked_list.a.0.0.1
+VERSION = 0.0.2
+DEPENDENCIES = dlinked_list/0.1.0
 INSTALL_PATH = /opt
-CFLAGS += 
+CFLAGS +=
 
-STATIC_DEP = ${shell echo ${DEPENDENCIES} | awk -v RS=' ' 'match($$0, "lib(.+).a.[0-9].[0-9].[0-9]", a) {print a[1]}'}
-SHARED_DEP = ${shell echo ${DEPENDENCIES} | awk -v RS=' ' 'match($$0, "lib(.+).so.[0-9].[0-9].[0-9]", a) {print a[1]}'}
+STATIC_DEP = dlinked_list
+SHARED_DEP =
+
 LDFLAGS += ${STATIC_DEP:%=-l%} ${SHARED_DEP:%=-l%}
