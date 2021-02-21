@@ -1,5 +1,5 @@
 APP_NAME = hash_table
-VERSION = 0.0.2
+VERSION = 0.1.0
 DEPENDENCIES = dlinked_list/0.1.0
 INSTALL_PATH = /opt
 CFLAGS +=
