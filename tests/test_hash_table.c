@@ -68,18 +68,25 @@ int main(void){
         int* ptr = &num;
         char str[] = "This is a string.";
         h_table_t ht;
+        char key[5] = "";
 
         h_table_init(&ht);
 
-        T_ASSERT_NUM(h_insert(&ht, "key1", ptr), 0);
-        T_ASSERT_NUM(h_insert(&ht, "key2", str), 0);
+        h_int_to_str(4, key);
+        T_ASSERT_NUM(h_insert(&ht, key, ptr), 0);
+        h_int_to_str(43, key);
+        T_ASSERT_NUM(h_insert(&ht, key, str), 0);
         T_ASSERT_NUM(ht.size, 2);
 
-        T_ASSERT_NUM(h_lookup(&ht, "key1"), ptr);
-        T_ASSERT_NUM(h_lookup(&ht, "key2"), str);
+        h_int_to_str(4, key);
+        T_ASSERT_NUM(h_lookup(&ht, key), ptr);
+        h_int_to_str(43, key);
+        T_ASSERT_NUM(h_lookup(&ht, key), str);
 
-        T_ASSERT_NUM(h_delete(&ht, "key1"), ptr);
-        T_ASSERT_NUM(h_delete(&ht, "key2"), str);
+        h_int_to_str(4, key);
+        T_ASSERT_NUM(h_delete(&ht, key), ptr);
+        h_int_to_str(43, key);
+        T_ASSERT_NUM(h_delete(&ht, key), str);
         T_ASSERT_NUM(ht.size, 0);
         h_table_free(&ht);
     );

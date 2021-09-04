@@ -7,21 +7,6 @@
 
 #define START_SIZE (37)
 
-/*
-static void
-display(h_table_t* ht){
-    size_t i = 0;while( i < ht->capacity ){
-        if(ht->hash_table[i]){
-            dl_node_t* dn = ht->hash_table[i];
-            h_node_t* hn = dn->data;
-            printf("%d ", (hn->value)?*((int*)hn->value):0);
-        }
-        i++;
-    }
-    printf("\n");
-}
-*/
-
 static char
 resize(h_table_t* ht, size_t more){
     size_t old_size = ht->capacity;
@@ -172,5 +157,14 @@ h_lookup(h_table_t* ht, const char* k){
         return NULL;
     }
     return n->value;
+}
+
+void
+h_int_to_str(int k, char* key){
+    int i = 0;
+    while(i < sizeof(k)){
+        key[i] = ((char)k) + 'a';
+        k = k >> 8 * sizeof(char) * ++i;
+    }
 }
 

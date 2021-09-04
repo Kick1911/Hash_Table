@@ -28,5 +28,6 @@ int h_next(h_iter_t*, char**, void**);
 char h_insert(h_table_t*, const char*, void*);
 void* h_delete(h_table_t*, const char*);
 void* h_lookup(h_table_t*, const char*);
+void h_int_to_str(int k, char* key);
 
 #endif /* END OF _HASH_TABLE_H */
