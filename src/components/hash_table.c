@@ -28,11 +28,11 @@ h_table_init(h_table_t* ht){
     ht->capacity = START_SIZE;
     ht->increm = ht->capacity;
     ht->size = 0;
-    ht->elements = malloc(sizeof(dl_list_t));
+    ht->elements = calloc(1, sizeof(dl_list_t));
     dl_init(ht->elements);
     ht->free = NULL;
 
-    ht->hash_table = calloc(sizeof(*ht->hash_table), ht->capacity);
+    ht->hash_table = calloc(ht->capacity, sizeof(*ht->hash_table));
     if(!ht->hash_table) return 2;
     return 0;
 }
