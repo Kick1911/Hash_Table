@@ -128,11 +128,10 @@ int main(void){
         char str2[] = "ness";
         char str3[] = "mid";
         void* n;
-        dl_list_t l;
+        dl_list_t l = {0};
 
         dl_init(&l);
 
-        T_ASSERT(&l);
         T_ASSERT(dl_push(&l, str1));
         T_ASSERT( (n = dl_push(&l, str3)) );
         T_ASSERT(dl_push(&l, str2));

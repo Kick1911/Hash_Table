@@ -1,4 +1,7 @@
+dist
+dependents
 include
+*.tar.gz
 *.a.*
 
 # Vim session

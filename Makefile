@@ -1,9 +1,24 @@
+# Made with C Project Manager
+# Author: Caswall Engelsman (mail@cengelsman.com)
+
 include config.mk
 include project.mk
 
-all: dep ${APP_NAME}
+ARCHIVE_FILES := ${APP_NAME:%=lib%.a}
+LIBRARY_FILES := ${APP_NAME:%=lib%.so}
+GITLAB_DEP := ${DEPENDENCIES:gitlab/%=${DEP_PATH}/gitlab/%}
+LDFLAGS += ${DEPENDENCIES:%=-L${DEP_PATH}/%}
+CFLAGS += ${DEPENDENCIES:%=-I${DEP_PATH}/%}
 
-${APP_NAME}: ${SRC_PATH}/${APP_NAME}.o ${COMP_O} ${UTILS_O}
+TAR_NAME ?= ${APP_NAME}-${VERSION}.tar.gz
+PACKAGE_CONTENTS ?= ${APP_NAME} ${ARCHIVE_FILES}
+
+all: set_debug_vars dep ${APP_NAME}
+
+set_debug_vars:
+	${eval DEBUG = -g3}
+
+${APP_NAME}: %: ${SRC_PATH}/%.o ${COMP_O} ${UTILS_O}
 	${call print,${GREEN}BIN $@}
 	${Q}${CC} $^ -o $@ ${CFLAGS} ${LDFLAGS}
 
@@ -11,9 +26,9 @@ ${APP_NAME}: ${SRC_PATH}/${APP_NAME}.o ${COMP_O} ${UTILS_O}
 	${call print,${CYAN}CC $@}
 	${Q}${CC} -c $< -o $@ ${CFLAGS}
 
-static_library: lib${APP_NAME}.a
+static_library: dep ${ARCHIVE_FILES}
 
-lib${APP_NAME}.a: ${COMP_O} ${UTILS_O}
+${ARCHIVE_FILES}: ${COMP_O} ${UTILS_O}
 	${call print,${BROWN}AR $@}
 	${Q}cd ${LIB_PATH}; ar -x *.a || true
 	${Q}ar -cq $@ $^ ${shell find ${LIB_PATH} -name '*.o'}
@@ -21,46 +36,90 @@ lib${APP_NAME}.a: ${COMP_O} ${UTILS_O}
 set_pic:
 	${eval CFLAGS += -fPIC}
 
-shared_library: set_pic lib${APP_NAME}.so
+shared_library: set_pic dep ${LIBRARY_FILES}
 
-lib${APP_NAME}.so: ${COMP_O} ${UTILS_O}
+${LIBRARY_FILES}: ${COMP_O} ${UTILS_O}
 	${call print,${BRIGHT_MAGENTA}LIB $@.${VERSION}}
 	${Q}${CC} -shared -Wl,-soname,$@ -o $@.${VERSION} $^ ${LDFLAGS}
 	${call print,${BRIGHT_CYAN}SYMLINK $@}
 	${Q}ln -sf $@.${VERSION} $@
 
-dep: ${DEPENDENCIES:%=${LIB_PATH}/%}
+dep: ${GITLAB_DEP}
 
-${LIB_PATH}/%:
+test:
+	${MAKE} test -C tests
+
+release:
+	${call print,${GREEN}RELEASE v${VERSION}}
+	${Q}git tag -a v${VERSION} -m 'Version ${VERSION}'
+	${Q}git push origin v${VERSION}
+
+${GITLAB_DEP}:
+	${eval PREFIX = ${DEP_PATH}/gitlab}
+	${eval CLEAN_PREFIX = ${PREFIX:./%=%}}
+	${eval INFO = ${@:${CLEAN_PREFIX}/%=%}}
+	${eval WORD_LIST = ${subst /, ,${INFO}}}
+
+	${eval PROJECT = ${word 1, ${WORD_LIST}}}
+	${eval VERSION = ${word 2, ${WORD_LIST}}}
+
+	${Q}mkdir -p $@
+	${call gitlab_get_file,${PROJECT},${VERSION},$@}
+	${Q}cd $@ && tar xvf dist.tar.gz
+
+${LIB_PATH}/%.a:
 	${eval WORD_LIST = ${subst /, ,$@}}
 	${eval ORG = ${word 2, ${WORD_LIST}}}
 	${eval PROJECT = ${word 3, ${WORD_LIST}}}
 	${eval VERSION = ${word 4, ${WORD_LIST}}}
-	${eval LIB_NAME = ${word 5, ${WORD_LIST}}}
-	${eval NAME = ${word 1, ${subst ., ,${LIB_NAME:lib%=%}}}}
-
+	${eval FILE_NAME = ${word 5, ${WORD_LIST}}}
 	${Q}mkdir -p ${dir $@}
-	${call get_archive,${ORG}/${PROJECT},${VERSION},${LIB_NAME},$@}
-	${call get_header,${ORG}/${PROJECT},${VERSION},${NAME},${INCLUDE_PATH}}
-	${Q}ln -sf ${shell pwd}/$@ ${shell pwd}/${LIB_PATH}/${LIB_NAME}
+	${call get_archive,${ORG}/${PROJECT},${VERSION},${FILE_NAME},$@}
+	${Q}ln -sf ${shell pwd}/$@ ${shell pwd}/${LIB_PATH}/${FILE_NAME}
+
+${LIB_PATH}/%.h:
+	${eval WORD_LIST = ${subst /, ,$@}}
+	${eval ORG = ${word 2, ${WORD_LIST}}}
+	${eval PROJECT = ${word 3, ${WORD_LIST}}}
+	${eval VERSION = ${word 4, ${WORD_LIST}}}
+	${eval FILE_NAME = ${word 5, ${WORD_LIST}}}
+	${Q}mkdir -p ${dir $@}
+	${Q}mkdir -p ${INCLUDE_PATH}
+	${call get_header,${ORG}/${PROJECT},${VERSION},${FILE_NAME},$@}
+	${Q}ln -sf ${shell pwd}/$@ ${shell pwd}/${INCLUDE_PATH}/${FILE_NAME}
+
+set_prod_vars:
+	${eval DEBUG = -O3}
+
+prod: set_prod_vars dep ${APP_NAME}
+
+package: dep ${TAR_NAME}
+
+${TAR_NAME}: ${PACKAGE_CONTENTS}
+	${call print,${GREEN}TAR $@}
+	${Q}mkdir -p ${DIST_PATH}
+	${Q}cp -R $^ ${DIST_PATH}
+	${Q}tar -czf $@ -C ${DIST_PATH} .
+
+install: ${INSTALL_STEPS}
 
 install_binary: ${INSTALL_PATH}/bin/
 	${call print,${GREEN}INSTALL $<}
 	${Q}cp ${APP_NAME} ${INSTALL_PATH}/bin/
 
-install_static: lib${APP_NAME}.a ${SRC_PATH}/${APP_NAME}.h ${INSTALL_PATH}/include/ ${INSTALL_PATH}/lib/
+install_static: ${ARCHIVE_FILES} ${APP_NAME:%=${SRC_PATH}/%.h} ${INSTALL_PATH}/include/ ${INSTALL_PATH}/lib/
 	${call print,${GREEN}INSTALL $<}
-	${Q}cp ${SRC_PATH}/${APP_NAME}.h ${INSTALL_PATH}/include/
-	${Q}cp lib${APP_NAME}.a ${INSTALL_PATH}/lib/
+	${Q}cp ${APP_NAME:%=${SRC_PATH}/%.h} ${INSTALL_PATH}/include/
+	${Q}cp ${ARCHIVE_FILES} ${INSTALL_PATH}/lib/
 
-install_shared: lib${APP_NAME}.so.${VERSION} ${SRC_PATH}/${APP_NAME}.h ${INSTALL_PATH}/include/ ${INSTALL_PATH}/lib/
+install_shared: ${APP_NAME:%=lib%.so.${VERSION}} ${APP_NAME:%=${SRC_PATH}/%.h} ${INSTALL_PATH}/include/ ${INSTALL_PATH}/lib/
 	${call print,${GREEN}INSTALL $<}
-	${Q}cp ${SRC_PATH}/${APP_NAME}.h ${INSTALL_PATH}/include/
-	${Q}cp lib${APP_NAME}.so.${VERSION} ${INSTALL_PATH}/lib/
+	${Q}cp ${APP_NAME:%=${SRC_PATH}/%.h} ${INSTALL_PATH}/include/
+	${Q}cp ${APP_NAME:%=lib%.so.${VERSION}} ${INSTALL_PATH}/lib/
 
-install_share_folder: ${INSTALL_PATH}/share/${APP_NAME}
+install_share_folder: ${APP_NAME:%=${INSTALL_PATH}/share/%}
 	${call print,${GREEN}INSTALL $<}
-	${Q}cp -R ${SHARE_PATH}/* ${INSTALL_PATH}/share/${APP_NAME}
+	${Q}cp -R ${SHARE_PATH}/* ${APP_NAME:%=${INSTALL_PATH}/share/%}
 
 ${INSTALL_PATH}/%:
 	${call print,${GREEN}MKDIR $@}
@@ -69,6 +128,7 @@ ${INSTALL_PATH}/%:
 clean:
 	${call print,${BRIGHT_CYAN}CLEAN ${APP_NAME}}
 	${Q}${MAKE} -C tests clean
-	${Q}${RM} ${APP_NAME} ${SRC_PATH}/${APP_NAME}.o lib${APP_NAME}.* ${COMP_O} ${UTILS_O}
+	${Q}${RM} ${APP_NAME} ${APP_NAME:%=${SRC_PATH}/%.o} ${APP_NAME:%=lib%.*} ${COMP_O} ${UTILS_O}
+	${Q}${RM} -R ${DIST_PATH}
 
-.PHONY: clean all set_pic install_share_folder install_shared install_binary install_static dep
+.PHONY: package clean set_prod_vars set_debug_vars prod all set_pic install install_share_folder install_shared install_binary install_static dep
