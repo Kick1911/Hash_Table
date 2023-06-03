@@ -1,0 +1,21 @@
+name: cpm release workflow
+
+on:
+  push:
+    tag:
+      - '*'
+
+jobs:
+  simple_build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: sudo apt install -y gcc make
+      - name: Package the project
+        run: make package
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "*.tar.gz"
