@@ -14,4 +14,4 @@ jobs:
       - name: Install Dependencies
         run: sudo apt install -y gcc make valgrind
       - name: make test
-        run: make test
+        run: CFLAGS=-static make test
