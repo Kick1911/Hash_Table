@@ -13,7 +13,5 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install Dependencies
         run: sudo apt install -y gcc make valgrind
-      - name: make static library
-        run: make static_library
       - name: make test
-        run: CFLAGS=-static make test
+        run: make test

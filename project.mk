@@ -1,7 +1,7 @@
 APP_NAME = hash_table
 VERSION = 0.1.2
 
-PACKAGE_CONTENTS := ${SRC_PATH}/${APP_NAME}.h lib${APP_NAME}.a
+PACKAGE_CONTENTS := ${SRC_PATH}/${APP_NAME}.h lib${APP_NAME}.a lib${APP_NAME}.so.${VERSION}
 
 INSTALL_PATH = /opt
 CFLAGS +=
